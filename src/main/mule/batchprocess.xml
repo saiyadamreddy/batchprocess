@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9ce3ad1b-480c-4ac3-8550-3b0d23318589" >
+		<http:listener-connection host="0.0.0.0" port="8091" />
+	</http:listener-config>
+	
+	<flow name="batchprocessFlow" doc:id="6e321054-743a-43c9-be99-b5f4dfc65d8b" >
+		<http:listener doc:name="Listener" doc:id="40382e30-0f33-4bad-a7c6-da569cc9b1a1" config-ref="HTTP_Listener_config" path="/batchprocess"/>
+		<set-variable value='"before batch1"' doc:name="Set Variable" doc:id="b8d99abe-1446-4f1f-8f35-8521b40a887d" variableName="batch1"/>
+	<logger level="INFO" doc:name="Logger" doc:id="0536b507-0ee2-483f-8dcb-33d061f143f3" message="#[vars.batch1]"/>
+		
+		<batch:job jobName="batchprocessBatch_Job" doc:id="9df9dbeb-bccd-44fb-8932-1b23543c2680" blockSize="5">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="c6bec066-d534-4536-aac6-3ae9622c389c" >
+			<set-variable value='"inside batch 1"' doc:name="Set Variable" doc:id="621b8b46-2f2e-4a3b-a134-52bd7e813cc3" variableName="batch1"/>
+			<logger level="INFO" doc:name="Logger" doc:id="1aa5268d-3736-4b46-9220-6a208b839177" message="#[vars.batch1]"/>
+		<set-variable value='#[payload*10]' doc:name="Set Variable" doc:id="0547933a-12ee-4751-9433-1a891d12033f" variableName="batch_process"/>
+	<logger level="INFO" doc:name="Logger" doc:id="acd060e6-a675-4c1a-83ea-88c285aa6def" message="#[vars.batch_process]"/>
+		
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="d3dcbffd-17ea-4d3d-911b-9cbd64128e48" size="2">
+<logger level="INFO" doc:name="Logger" doc:id="b5e73113-e2da-4d2f-9eb9-8b3c86a659d6" message='"batch aggregate"'/>
+<logger level="INFO" doc:name="Logger" doc:id="8239b999-e984-4c6d-8b84-02381735c47b" message='#[payload]'/>
+	
+</batch:aggregator>				
+</batch:step>
+				<batch:step name="Batch_Step1" doc:id="abd0d2ef-928b-4925-97d8-77e0ad3998c0" acceptPolicy="ONLY_FAILURES">
+				<logger level="INFO" doc:name="Logger" doc:id="4311f028-02ae-4774-bc36-1b15ccb1460c" message='"batch step 2"'/>
+		    	<logger level="INFO" doc:name="Logger" doc:id="6a3bbf9d-710a-4468-a9d9-a173e01edab5" message='#[payload]'/>
+		
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="18795852-75db-468f-8e76-a1c615079954" message="#[payload]"/>
+			</batch:on-complete>
+		
+</batch:job>
+		<logger level="INFO" doc:name="Logger" doc:id="5a510cc7-66d4-4009-a116-0381661cacf9" message='"outside the batch  completed"'/>
+	</flow>
+</mule>
