@@ -5,8 +5,8 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
-	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9ce3ad1b-480c-4ac3-8550-3b0d23318589" >
-		<http:listener-connection host="0.0.0.0" port="8091" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="40382e30-0f33-4bad-a7c6-da569cc9b1a1" primaryNodeOnly="false" path="/batchprocess" responseStreamingMode="AUTO" config-ref="HTTP_Listener_config">
+		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
 	
 	<flow name="batchprocessFlow" doc:id="6e321054-743a-43c9-be99-b5f4dfc65d8b" >
@@ -19,8 +19,16 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 				<batch:step name="Batch_Step" doc:id="c6bec066-d534-4536-aac6-3ae9622c389c" >
 			<set-variable value='"inside batch 1"' doc:name="Set Variable" doc:id="621b8b46-2f2e-4a3b-a134-52bd7e813cc3" variableName="batch1"/>
 			<logger level="INFO" doc:name="Logger" doc:id="1aa5268d-3736-4b46-9220-6a208b839177" message="#[vars.batch1]"/>
-		<set-variable value='#[payload*10]' doc:name="Set Variable" doc:id="0547933a-12ee-4751-9433-1a891d12033f" variableName="batch_process"/>
-	<logger level="INFO" doc:name="Logger" doc:id="acd060e6-a675-4c1a-83ea-88c285aa6def" message="#[vars.batch_process]"/>
+	<try doc:name="Try" doc:id="5e210530-c429-4396-813e-e1eadacfc6f0" >
+						<set-variable value="#[payload*10]" doc:name="Set Variable" doc:id="0547933a-12ee-4751-9433-1a891d12033f" variableName="batch_process" />
+						<error-handler >
+							<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="54860c22-0dae-477a-8922-0fee02ead3ad" >
+								<logger level="INFO" doc:name="Logger" doc:id="828db924-5c7b-4c08-a245-9db06e134337" message='"on error continue"'/>
+			<logger level="INFO" doc:name="Logger" doc:id="26179fc4-812d-4a1d-a39a-200078fcbc4a" message="#[payload]"/>
+							</on-error-propagate>
+						</error-handler>
+					</try>
+					<logger level="INFO" doc:name="Logger" doc:id="acd060e6-a675-4c1a-83ea-88c285aa6def" message="#[vars.batch_process]"/>
 		
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="d3dcbffd-17ea-4d3d-911b-9cbd64128e48" size="2">
 <logger level="INFO" doc:name="Logger" doc:id="b5e73113-e2da-4d2f-9eb9-8b3c86a659d6" message='"batch aggregate"'/>
